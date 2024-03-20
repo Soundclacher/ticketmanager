@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Dotenv\Util\Str;
 use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
@@ -73,8 +74,11 @@ class TicketController extends Controller
         return view('ticket.show', ['ticket' => $ticket]);
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id, string $email)
     {
-        //
+        $comment = $request->input('comment');
+        $ticket = DB::table('tickets')->where('id', $id)->update(['status' => 'Resolved', 'comment' => $comment]);
+
+        return view('ticket.update', ['success' => $ticket, 'ticket' => $id, 'comment' => $comment]);
     }
 }
