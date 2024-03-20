@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Dotenv\Util\Str;
 use Illuminate\Support\Facades\DB;
-
+use App\Helpers\Mailer;
 class TicketController extends Controller
 {
-
+    // Получение всех тикетов
+    // Заприваченный
+    // Может получать квери filter для фильтрации тикетов
     public function index(Request $request)
     {
         $filter = $request->query()['filter'] ?? '';
@@ -46,11 +47,15 @@ class TicketController extends Controller
         return view('ticket.index', ['tickets' => $tickets]);
     }
 
+    // Публичный, для отрисовки формы создания заявки
     public function create()
     {
         return view('ticket.create');
     }
 
+    // Публичный, для получения данных с формы создания
+    // И создания заявки
+    // Все параметры получает с формы в реквест
     public function store(Request $request)
     {
         $name = $request->input('name');
@@ -68,17 +73,50 @@ class TicketController extends Controller
         return view('ticket.store', ['ticket' => $ticket]);
     }
 
+    // Приватный
+    // По полученному в params id ищет нужный тикет
     public function show(string $id)
     {
         $ticket = DB::table('tickets')->find($id);
         return view('ticket.show', ['ticket' => $ticket]);
     }
 
+    // Приватный
+    // По полученному в params id ищет тикет
+    // Добавляет полученный из формы коммент
+    // И меняет статус на Resolved
+    // Отрисовывает страницу с успехом
     public function update(Request $request, string $id, string $email)
     {
         $comment = $request->input('comment');
         $ticket = DB::table('tickets')->where('id', $id)->update(['status' => 'Resolved', 'comment' => $comment]);
 
+        $mailer = new Mailer();
+
+        $mailer->send(
+            $email,
+            'admin@admin.ru',
+            "Оповещение по заявке №$id",
+            "Ваша заявка была обработана: $comment"
+        );
+
         return view('ticket.update', ['success' => $ticket, 'ticket' => $id, 'comment' => $comment]);
+    }
+    // Приватный
+    // Отправляет пользователю, оставившему заявку, сообщение
+    public function send(Request $request, $id, $email)
+    {
+        $text = $request->input('answer');
+
+        $mailer = new Mailer();
+
+        $mailer->send(
+            $email,
+            'admin@admin.ru',
+            "Вопрос по заявке №$id",
+            $text
+        );
+
+        return view('ticket.answer', ['text' => $text]);
     }
 }
