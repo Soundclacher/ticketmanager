@@ -34,11 +34,3 @@
         <hr>
     @endforeach
 </div>
-
-
-{{--<script>--}}
-{{--    document.addEventListener('DOMContentLoaded', win => {--}}
-{{--        const container = document.querySelector('.tickets');--}}
-{{--        const tickets = document.querySelectorAll()--}}
-{{--    })--}}
-{{--</script>--}}
